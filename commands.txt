@@ -1,0 +1,25 @@
+dmesg | grep -i '\(can\|spi\)'
+
+sudo ip link set can0 up type can bitrate 1000000
+
+candump any
+
+cansend can0 111#FF
+
+pyuic5 -x DAQ_GUI_V6.ui -o gui6.py
+pyuic5 -x DAQ_GUI_V7.ui -o gui7.py
+
+sudo ln -fs /opt/vc/lib/libEGL.so /usr/lib/arm-linux-gnueabihf/libEGL.so.1.0.0
+
+python3 /home/pi/Desktop/python/version6.py
+Segmentation fault
+
+git config --global user.name "garcial359"
+git config --global user.email "garcial359@gmail.com"
+git clone https://github.com/garcial359/candaq.git
+garcial359
+sX9ku4T25yscLsn
+git add <file name>
+git commit -m "message"
+git push
+git pull
