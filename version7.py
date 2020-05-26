@@ -19,10 +19,10 @@ import os
 import piplates.TINKERplate as TINK
 import time
 import psutil
-     
+
 
 class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
-    
+
     def __init__(self, parent = None):
         super(MainUiClass, self).__init__(parent)
         self.setupUi(self)
@@ -31,14 +31,14 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.keyboardPushButton.clicked.connect(self.displayKeyboard)
         self.actionExit.triggered.connect(self.close)
         self.browserPushButton.clicked.connect(self.openFileNameDialog)
-    
+
     def openFileNameDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","All Files (*);;Text Files (*.txt)", options=options)
         if fileName:
             self.fileName.setText(fileName)
-        
+
     def displayKeyboard(self):
         if self.checkIfProcessRunning('matchbox-keyboard'):
             #os.system("/usr/bin/toggle-keyboard.sh")
@@ -52,8 +52,8 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
             except FileNotFoundError:
                 print("keyboard Error")
                 pass
-        
-        
+
+
     def checkIfProcessRunning(self, processName):
         for proc in psutil.process_iter():
             try:
@@ -62,7 +62,7 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
             except(psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return False;
-    
+
     def record(self):
         if self.fileName.text() == "":
             self.updateLog("Please type in file name")
@@ -73,14 +73,14 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         except:
             self.updateLog("Invalid file name or extension.\nTry harder...")
             return
-        
+
         AIChecked = self.AICheckBox.isChecked()
-        
+
         self.progressBar.setValue(0)
         self.recordButton.setEnabled(0)
         self.abortButton.setEnabled(1)
         self.updateLog("Recording Started...")
-        
+
         self.thread = QtCore.QThread()
         self.record_thread = recordThread(file_name = record_file_name, AICheckBox = AIChecked)
         self.record_thread.moveToThread(self.thread)
@@ -88,7 +88,7 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.thread.finished.connect(self.record_thread.stop)
         self.record_thread.log_message.connect(self.updateLog)
         self.thread.start()
-        
+
         self.thread2 = QtCore.QThread()
         self.progress_thread = progressBarThread(recording_time_input = self.recordingTimeLineEdit.text())
         self.progress_thread.moveToThread(self.thread2)
@@ -96,9 +96,9 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.progress_thread.timeout.connect(self.abort)
         self.progress_thread.updateProgressBar.connect(self.updateProgressBar)
         self.thread2.start()
-    
+
     def abort(self):
-        
+
         try:
             self.abortButton.setEnabled(0)
             self.thread.quit()
@@ -110,21 +110,21 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.updateLog("...Recording Ended")
         except:
             self.updateLog("Error Aborting.\nDo not click Abort button while not recording.")
-        
-        
+
+
     def updateProgressBar(self, progress):
         self.progressBar.setValue(progress)
-        
+
     def updateLog(self, log_message):
         self.logTextEdit.append(log_message)
-        
+
 class rxThread(QtCore.QObject):
     message = QtCore.pyqtSignal(can.Message)
     rx_log_message = QtCore.pyqtSignal(str)
-    
+
     def __init__(self, parent = None):
         super(rxThread, self).__init__(parent)
-        
+
     def run(self):
         os.system("sudo /sbin/ip link set can0 up type can bitrate 1000000")
         time.sleep(0.1)
@@ -143,13 +143,13 @@ class rxThread(QtCore.QObject):
             except can.CanError:
                 self.rx_log_message.emit("canbus error")
 
-        
+
 class recordThread(QtCore.QObject):
     log_message = QtCore.pyqtSignal(str)
     outfile = 0
     count = 0
     AIEnabled = 0
-    
+
     def __init__(self, file_name, AICheckBox, parent = None):
         super(recordThread, self).__init__(parent)
         self.thread = QtCore.QThread()
@@ -157,26 +157,37 @@ class recordThread(QtCore.QObject):
         self.rx_thread.moveToThread(self.thread)
         self.rx_thread.message.connect(self.message_record)
         self.rx_thread.rx_log_message.connect(self.logMessage)
-        self.thread.started.connect(self.rx_thread.run)        
+        self.thread.started.connect(self.rx_thread.run)
         self.outfile = open(file_name,'w')
         self.AIEnabled = AICheckBox
         if AICheckBox == 1:
             print("timestamp, count, id, data1, data2, AI1, AI2, AI3, AI4",file = self.outfile)
         else:
             print("timestamp, count, id, data1, data2",file = self.outfile)
-        
-    def run(self): 
+
+    def run(self):
         if not self.thread.isRunning():
             self.thread.start()
 
     def message_record(self, message):
         if self.thread.isRunning():
-            c = '{0:f}, {1:d}, {2:x}, {3:x} '.format(message.timestamp,self.count, message.arbitration_id, message.dlc)
-            s=''
-            for i in range(message.dlc ):
-                    s +=  '{0:x} '.format(message.data[i])
+            c = '{0:f},{1:d},{2:x},{3:x},'.format(message.timestamp, self.count, message.arbitration_id, message.dlc)
+            data=''
+            if message.dlc == 8:
+                viscosity = int('{0:x}{1:x}'.format(message.data[0],message.data[1]), 16)/63.9994
+                density = int('{0:x}{1:x}'.format(message.data[2],message.data[3]), 16)/32762.6478988
+                dielectric_constant = int('{0:x}{1:x}'.format(message.data[4],message.data[5]), 16)/8191.9153277
+                oil_temp = (int('{0:x}{1:x}'.format(message.data[6],message.data[7]), 16)/32.0)-273.0
+                status_code = int('{0:x}'.format(message.data[7]), 16)
+                data += ("%5f,%5f,%5f,%5f,%5d" % (viscosity, density, dielectric_constant, oil_temp, status_code))
+                if status_code != 0:
+                    self.log_message.emit("sensor reports error code %d" % (status_code))
+            else:
+                self.log_message.emit("Incorrect number of channels received")
+                for i in range(message.dlc ):
+                        data +=  '{0:x} '.format(message.data[i])
             
-            outstr = c+s
+            outstr = c+data
             if (self.AIEnabled == 1):
                 volts = TINK.getADC(0,1)
                 outstr = outstr+', '+ str(volts)
@@ -186,39 +197,39 @@ class recordThread(QtCore.QObject):
                 outstr = outstr+', '+ str(volts)
                 volts = TINK.getADC(0,1)
                 outstr = outstr+', '+ str(volts)
-                
+
             self.count += 1
             try:
                 print(outstr,file = self.outfile) # Save data to file
                 self.log_message.emit(outstr)
             except:
                 self.log_message.emit("Canbus RX Thread Error")
-                
+
     def logMessage(self, log_messages):
         self.log_message.emit(log_messages)
-        
+
     def stop(self):
         self.thread.quit()
         self.thread.wait()
         self.outfile.close()
-        os.system("sudo /sbin/ip link set can0 down")       
-        
-                
+        os.system("sudo /sbin/ip link set can0 down")
+
+
 class progressBarThread(QtCore.QObject):
     timeout = QtCore.pyqtSignal()
     updateProgressBar = QtCore.pyqtSignal(float)
-    
+
     def __init__(self, recording_time_input, parent = None):
         super(progressBarThread, self).__init__(parent)
         self.recording_time_input = recording_time_input
-        
+
     def run(self):
         progress = 0
         try:
             recording_time = int(self.recording_time_input)
         except ValueError:
             print("not a valid recording time")
-            return        
+            return
         while progress < 100 and MainWindow.thread.isRunning():
             QtCore.QThread.sleep(1)
             if not MainWindow.thread.isRunning():
@@ -226,14 +237,13 @@ class progressBarThread(QtCore.QObject):
             progress += 100.0/recording_time
             self.updateProgressBar.emit(progress)
         self.timeout.emit()
-    
+
     def quit(self):
         print("stop")
 
-        
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = MainUiClass()
     MainWindow.showFullScreen()
     sys.exit(app.exec())
-    
