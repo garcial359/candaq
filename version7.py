@@ -126,7 +126,7 @@ class rxThread(QtCore.QObject):
         super(rxThread, self).__init__(parent)
 
     def run(self):
-        os.system("sudo /sbin/ip link set can0 up type can bitrate 1000000")
+        os.system("sudo /sbin/ip link set can0 up type can bitrate 250000")
         time.sleep(0.1)
         try:
             bus = can.interface.Bus(channel='can0', bustype='socketcan_native')
