@@ -161,9 +161,9 @@ class recordThread(QtCore.QObject):
         self.outfile = open(file_name,'w')
         self.AIEnabled = AICheckBox
         if AICheckBox == 1:
-            print("timestamp, count, id, data1, data2, AI1, AI2, AI3, AI4",file = self.outfile)
+            print("timestamp,count,id,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status, AI1,AI2,AI3,AI4",file = self.outfile)
         else:
-            print("timestamp, count, id, data1, data2",file = self.outfile)
+            print("timestamp,count,id,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status",file = self.outfile)
 
     def run(self):
         if not self.thread.isRunning():
@@ -179,13 +179,13 @@ class recordThread(QtCore.QObject):
                 dielectric_constant = int('{0:x}{1:x}'.format(message.data[4],message.data[5]), 16)/8191.9153277
                 oil_temp = (int('{0:x}{1:x}'.format(message.data[6],message.data[7]), 16)/32.0)-273.0
                 status_code = int('{0:x}'.format(message.data[7]), 16)
-                data += ("%5f,%5f,%5f,%5f,%5d" % (viscosity, density, dielectric_constant, oil_temp, status_code))
+                data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code))
                 if status_code != 0:
                     self.log_message.emit("sensor reports error code %d" % (status_code))
             else:
                 self.log_message.emit("Incorrect number of channels received")
                 for i in range(message.dlc ):
-                        data +=  '{0:x} '.format(message.data[i])
+                        data +=  '{0:x}'.format(message.data[i])
             
             outstr = c+data
             if (self.AIEnabled == 1):
