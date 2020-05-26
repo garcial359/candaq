@@ -1,2 +1,1 @@
 timestamp,count,id,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status
-1590466386.622802,0,111,8, 963.774660,1.89047601,7.65498635,1697.65625,85

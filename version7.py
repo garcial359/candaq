@@ -173,15 +173,35 @@ class recordThread(QtCore.QObject):
         if self.thread.isRunning():
             c = '{0:f},{1:d},{2:x},{3:x},'.format(message.timestamp, self.count, message.arbitration_id, message.dlc)
             data=''
-            if message.dlc == 8:
-                viscosity = int('{0:x}{1:x}'.format(message.data[0],message.data[1]), 16)/63.9994
-                density = int('{0:x}{1:x}'.format(message.data[2],message.data[3]), 16)/32762.6478988
-                dielectric_constant = int('{0:x}{1:x}'.format(message.data[4],message.data[5]), 16)/8191.9153277
-                oil_temp = (int('{0:x}{1:x}'.format(message.data[6],message.data[7]), 16)/32.0)-273.0
+            viscosity=0
+            density=0
+            dielectric_constant=0
+            oil_temp=0
+            status_code=0
+            if message.arbitration_id == 64776:
+                if message.dlc < 8:
+                    viscosity = int('{0:x}{1:x}'.format(message.data[0],message.data[1]), 16)/63.9994
+                    density = int('{0:x}{1:x}'.format(message.data[2],message.data[3]), 16)/32762.6478988
+                    dielectric_constant = int('{0:x}{1:x}'.format(message.data[6],message.data[7]), 16)/8191.9153277
+                else:
+                    self.log_message.emit("Incorrect number of channels received")
+                    for i in range(message.dlc ):
+                        data +=  '{0:x}'.format(message.data[i])
+            elif message.arbitration_id == 65262:
+                if message.dlc < 4:
+                    oil_temp = (int('{0:x}{1:x}'.format(message.data[2],message.data[3]), 16)/32.0)-273.0
+                else:
+                    self.log_message.emit("Incorrect number of channels received")
+                    for i in range(message.dlc ):
+                        data +=  '{0:x}'.format(message.data[i])
+            elif message.arbitration_id == 65329:
                 status_code = int('{0:x}'.format(message.data[7]), 16)
-                data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code))
-                if status_code != 0:
-                    self.log_message.emit("sensor reports error code %d" % (status_code))
+            else:
+                self.log_message.emit("incorrect arbitration id transmitted")
+                
+            data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code))
+            if status_code != 0:
+                self.log_message.emit("sensor reports error code %d" % (status_code))
             else:
                 self.log_message.emit("Incorrect number of channels received")
                 for i in range(message.dlc ):
