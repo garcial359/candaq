@@ -135,7 +135,7 @@ class rxThread(QtCore.QObject):
 
         while MainWindow.thread.isRunning():
             try:
-                recv_message = bus.recv(5)
+                recv_message = bus.recv(60)
                 if recv_message != None:
                     self.message.emit(recv_message)
                 else:
@@ -178,36 +178,29 @@ class recordThread(QtCore.QObject):
             dielectric_constant=0
             oil_temp=0
             status_code=0
-            if message.arbitration_id == 64776:
-                if message.dlc < 8:
-                    viscosity = int('{0:x}{1:x}'.format(message.data[0],message.data[1]), 16)/63.9994
-                    density = int('{0:x}{1:x}'.format(message.data[2],message.data[3]), 16)/32762.6478988
-                    dielectric_constant = int('{0:x}{1:x}'.format(message.data[6],message.data[7]), 16)/8191.9153277
+            if message.dlc == 8:
+                if message.arbitration_id == 486344767:
+                    viscosity = int('{0:x}{1:x}'.format(message.data[1],message.data[0]), 16)/63.9994
+                    density = int('{0:x}{1:x}'.format(message.data[3],message.data[2]), 16)/32762.6478988
+                    dielectric_constant = int('{0:x}{1:x}'.format(message.data[5],message.data[4]), 16)/8191.9153277
+                elif message.arbitration_id == 419360319:
+                    oil_temp = (int('{0:x}{1:x}'.format(message.data[3],message.data[2]), 16)/32.0)-273.0
+                elif message.arbitration_id == 419377471:
+                    status_code = int('{0:x}'.format(message.data[0]), 16)
                 else:
-                    self.log_message.emit("Incorrect number of channels received")
-                    for i in range(message.dlc ):
-                        data +=  '{0:x}'.format(message.data[i])
-            elif message.arbitration_id == 65262:
-                if message.dlc < 4:
-                    oil_temp = (int('{0:x}{1:x}'.format(message.data[2],message.data[3]), 16)/32.0)-273.0
-                else:
-                    self.log_message.emit("Incorrect number of channels received")
-                    for i in range(message.dlc ):
-                        data +=  '{0:x}'.format(message.data[i])
-            elif message.arbitration_id == 65329:
-                status_code = int('{0:x}'.format(message.data[7]), 16)
-            else:
-                self.log_message.emit("incorrect arbitration id transmitted")
-                
-            data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code))
-            if status_code != 0:
-                self.log_message.emit("sensor reports error code %d" % (status_code))
+                    if message.arbitration_id != 419430207:
+                        self.log_message.emit("incorrect arbitration id transmitted")
             else:
                 self.log_message.emit("Incorrect number of channels received")
                 for i in range(message.dlc ):
-                        data +=  '{0:x}'.format(message.data[i])
+                    data +=  '{0:x}'.format(message.data[i])
+                        
+            data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code))
+            if status_code != 0:
+                self.log_message.emit("sensor reports error code %d" % (status_code))
             
             outstr = c+data
+            
             if (self.AIEnabled == 1):
                 volts = TINK.getADC(0,1)
                 outstr = outstr+', '+ str(volts)
@@ -246,7 +239,7 @@ class progressBarThread(QtCore.QObject):
     def run(self):
         progress = 0
         try:
-            recording_time = int(self.recording_time_input)
+            recording_time = 60*(int(self.recording_time_input))
         except ValueError:
             print("not a valid recording time")
             return
