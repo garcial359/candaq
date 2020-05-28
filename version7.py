@@ -194,13 +194,13 @@ class recordThread(QtCore.QObject):
                 self.log_message.emit("Incorrect number of channels received")
                 for i in range(message.dlc ):
                     data +=  '{0:x}'.format(message.data[i])
-                        
+
             data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code))
             if status_code != 0:
                 self.log_message.emit("sensor reports error code %d" % (status_code))
-            
+
             outstr = c+data
-            
+
             if (self.AIEnabled == 1):
                 volts = TINK.getADC(0,1)
                 outstr = outstr+', '+ str(volts)
@@ -213,8 +213,9 @@ class recordThread(QtCore.QObject):
 
             self.count += 1
             try:
-                print(outstr,file = self.outfile) # Save data to file
-                self.log_message.emit(outstr)
+                if status_code != 0 or message.arbitration_id == 486344767 or message.arbitration_id == 419360319:
+                    print(outstr,file = self.outfile) # Save data to file
+                    self.log_message.emit(outstr)
             except:
                 self.log_message.emit("Canbus RX Thread Error")
 
