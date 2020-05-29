@@ -161,9 +161,9 @@ class recordThread(QtCore.QObject):
         self.outfile = open(file_name,'w')
         self.AIEnabled = AICheckBox
         if AICheckBox == 1:
-            print("timestamp,count,id,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status, AI1,AI2,AI3,AI4",file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status, AI1,AI2,AI3,AI4",file = self.outfile)
         else:
-            print("timestamp,count,id,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status",file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status",file = self.outfile)
 
     def run(self):
         if not self.thread.isRunning():
