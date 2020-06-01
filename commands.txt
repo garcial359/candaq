@@ -23,3 +23,5 @@ git add <file name>
 git commit -m "message"
 git push
 git pull
+
+file manager>edit>preferences>Don't ask options on launch exec file
