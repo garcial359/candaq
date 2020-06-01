@@ -80,6 +80,7 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.recordButton.setEnabled(0)
         self.abortButton.setEnabled(1)
         self.updateLog("Recording Started...")
+        self.updateLog("timestamp, count, id, dlc, Viscosity (cp), Density (gm/cc), Dielectric constant (-), Temperature (C), Status")
 
         self.thread = QtCore.QThread()
         self.record_thread = recordThread(file_name = record_file_name, AICheckBox = AIChecked)
@@ -118,6 +119,7 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def updateLog(self, log_message):
         self.logTextEdit.append(log_message)
 
+
 class rxThread(QtCore.QObject):
     message = QtCore.pyqtSignal(can.Message)
     rx_log_message = QtCore.pyqtSignal(str)
@@ -150,8 +152,10 @@ class recordThread(QtCore.QObject):
     count = 0
     AIEnabled = 0
 
+
     def __init__(self, file_name, AICheckBox, parent = None):
         super(recordThread, self).__init__(parent)
+        os.system("sudo /sbin/ip link set can0 down")
         self.thread = QtCore.QThread()
         self.rx_thread = rxThread()
         self.rx_thread.moveToThread(self.thread)
@@ -165,9 +169,11 @@ class recordThread(QtCore.QObject):
         else:
             print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status",file = self.outfile)
 
+
     def run(self):
         if not self.thread.isRunning():
             self.thread.start()
+
 
     def message_record(self, message):
         if self.thread.isRunning():
@@ -219,8 +225,10 @@ class recordThread(QtCore.QObject):
             except:
                 self.log_message.emit("Canbus RX Thread Error")
 
+
     def logMessage(self, log_messages):
         self.log_message.emit(log_messages)
+
 
     def stop(self):
         self.thread.quit()
@@ -261,3 +269,4 @@ if __name__ == "__main__":
     MainWindow = MainUiClass()
     MainWindow.showFullScreen()
     sys.exit(app.exec())
+
