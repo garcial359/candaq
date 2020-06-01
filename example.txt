@@ -1,3 +1,3 @@
-timestamp,count,id,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status
-1590700453.362020,0,1cfd083f,8,   7.968825,0.83125149,2.22744001,   0.00000,0
-1590700453.362383,1,18feee3f,8,   0.000000,0.00000000,0.00000000,  80.03125,0
+timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status
+1590764991.130687,0,1cfd083f,8,   6.609437,0.82124009,2.20253741,   0.00000,0
+1590764991.131035,1,18feee3f,8,   0.000000,0.00000000,0.00000000,  86.46875,0

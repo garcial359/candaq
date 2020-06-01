@@ -1,6 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=CAN DAQ
-Exec=/home/pi/Desktop/DAQ/version6.py
-Icon=/home/pi/Desktop/python/daq.png
-terminal=false
