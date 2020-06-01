@@ -19,6 +19,7 @@ import os
 import piplates.TINKERplate as TINK
 import time
 import psutil
+import csv
 
 
 class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
@@ -151,6 +152,7 @@ class recordThread(QtCore.QObject):
     outfile = 0
     count = 0
     AIEnabled = 0
+    file_name = 0
 
 
     def __init__(self, file_name, AICheckBox, parent = None):
@@ -162,6 +164,7 @@ class recordThread(QtCore.QObject):
         self.rx_thread.message.connect(self.message_record)
         self.rx_thread.rx_log_message.connect(self.logMessage)
         self.thread.started.connect(self.rx_thread.run)
+        self.file_name = file_name
         self.outfile = open(file_name,'w')
         self.AIEnabled = AICheckBox
         if AICheckBox == 1:
@@ -228,12 +231,51 @@ class recordThread(QtCore.QObject):
 
     def logMessage(self, log_messages):
         self.log_message.emit(log_messages)
+    
+    
+    def format_file(self):
+        time_data = []
+        sensor_data = []
+        formatted_data = []
+        data = []
+        f = open(self.file_name, 'r')
+        file = csv.reader(f)
+        line_count = 0
+        for row in file:
+            if line_count == 0:
+                data.append(["Time (min)"]+row[4:9])
+            if line_count == 1:
+                start_time = float(row[0])
+                time = float(row[0]) - start_time
+                time_data.append(time)
+                sensor_data = list(map(float, row[4:9]))
+                formatted_data = sensor_data
+            if line_count > 1:
+                time = float(row[0])-start_time
+                time_data.append(time)
+                sensor_data = list(map(float, row[4:9]))
+                time_delta = time - time_data[line_count - 2]
+                if time_delta < 1:
+                    for index, item in enumerate(formatted_data):
+                        formatted_data[index] += sensor_data[index]
+                else:
+                    data.append([time_data[line_count-2]/60] + formatted_data[0:5])
+                    formatted_data = sensor_data
+            line_count += 1
+            
+        data.append([time/60] + formatted_data)
+        
+        print("creating " + self.file_name.strip(".txt") + ".csv")
+        with open(self.file_name.strip(".txt") + ".csv", 'w', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=',')
+            csv_writer.writerows(data)
 
 
     def stop(self):
         self.thread.quit()
         self.thread.wait()
         self.outfile.close()
+        self.format_file()
         os.system("sudo /sbin/ip link set can0 down")
 
 
@@ -267,6 +309,6 @@ class progressBarThread(QtCore.QObject):
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = MainUiClass()
-    MainWindow.showFullScreen()
+    MainWindow.show()
     sys.exit(app.exec())
 
