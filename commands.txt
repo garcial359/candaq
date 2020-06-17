@@ -25,3 +25,13 @@ git push
 git pull
 
 file manager>edit>preferences>Don't ask options on launch exec file
+
+***Needed for the 2 channel canbus to work
+$ cat /etc/udev/rules.d/75-can.rules
+SUBSYSTEM!="net", GOTO="my_can_end"
+ACTION!="add", GOTO="my_can_end"
+
+DEVPATH=="/devices/platform/soc/3f204000.spi/spi_master/spi0/spi0.0/net/can?", ATTR{id}="SPI0", ENV{SPI}="0", NAME="can0"
+DEVPATH=="/devices/platform/soc/3f215080.spi/spi_master/spi1/spi1.2/net/can?", ATTR{id}="SPI1", ENV{SPI}="1", NAME="can1"
+
+LABEL="my_can_end"
