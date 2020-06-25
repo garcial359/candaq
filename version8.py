@@ -16,7 +16,7 @@ import sys
 import can
 import time
 import os
-#import piplates.TINKERplate as TINK
+import piplates.TINKERplate as TINK
 import time
 import psutil
 import csv
@@ -130,11 +130,9 @@ class rxThread(QtCore.QObject):
 
     def run(self):
         os.system("sudo /sbin/ip link set can0 up type can bitrate 250000")
-        #os.system("sudo /sbin/ip link set can1 up type can bitrate 250000")
         time.sleep(0.1)
         try:
             bus = can.interface.Bus(channel='can0', bustype='socketcan_native')
-            #bus1 = can.interface.Bus(channel='can1', bustype='socketcan_native')
         except OSError:
             self.rx_log_message.emit('Cannot find PiCAN0 board.')
 
