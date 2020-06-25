@@ -16,7 +16,7 @@ import sys
 import can
 import time
 import os
-import piplates.TINKERplate as TINK
+#import piplates.TINKERplate as TINK
 import time
 import psutil
 import csv
@@ -32,6 +32,7 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.keyboardPushButton.clicked.connect(self.displayKeyboard)
         self.actionExit.triggered.connect(self.close)
         self.browserPushButton.clicked.connect(self.openFileNameDialog)
+        self.AICheckBox.hide()
 
     def openFileNameDialog(self):
         options = QFileDialog.Options()
