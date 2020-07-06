@@ -168,9 +168,9 @@ class recordThread(QtCore.QObject):
         self.outfile = open(file_name,'w')
         self.AIEnabled = AICheckBox
         if AICheckBox == 1:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Rp (ohms),Status, AI1,AI2,AI3,AI4",file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms), AI1,AI2,AI3,AI4",file = self.outfile)
         else:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Rp (ohms),Status",file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms)",file = self.outfile)
 
 
     def run(self):
@@ -206,7 +206,7 @@ class recordThread(QtCore.QObject):
                 for i in range(message.dlc ):
                     data +=  '{0:x}'.format(message.data[i])
 
-            data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d,%0d" % (viscosity, density, dielectric_constant, oil_temp, Rp, status_code))
+            data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code, Rp))
             if status_code != 0:
                 self.log_message.emit("sensor reports error code %d" % (status_code))
 
