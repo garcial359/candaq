@@ -6,6 +6,8 @@ candump any
 
 cansend can0 111#FF
 
+sudo ip link set can0 down
+
 pyuic5 -x DAQ_GUI_V6.ui -o gui6.py
 pyuic5 -x DAQ_GUI_V7.ui -o gui7.py
 
