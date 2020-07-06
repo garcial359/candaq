@@ -6,3 +6,4 @@ Icon=/home/pi/Desktop/candaq/daq-icon.png
 Exec=/home/pi/Desktop/candaq/version7.py
 Terminal=false
 Path=/home/pi/Desktop/candaq
+Name[en_US]=Donaldson DAQ

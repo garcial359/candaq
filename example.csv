@@ -1,2 +1,2 @@
-Time (min),Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status, Channel
-0.015686917304992675,3754.6445750000007,2.9337677600000003,17.59991332,0.0,0.0,bus1
+Time (min),Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Rp (ohms),Status
+2.578099568684896e-05,38.234733,0.85139639,2.28542401,-253.6875,27253000.0,0.0

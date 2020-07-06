@@ -168,9 +168,9 @@ class recordThread(QtCore.QObject):
         self.outfile = open(file_name,'w')
         self.AIEnabled = AICheckBox
         if AICheckBox == 1:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status, AI1,AI2,AI3,AI4",file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Rp (ohms),Status, AI1,AI2,AI3,AI4",file = self.outfile)
         else:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C), Status",file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Rp (ohms),Status",file = self.outfile)
 
 
     def run(self):
@@ -180,31 +180,33 @@ class recordThread(QtCore.QObject):
 
     def message_record(self, message):
         if self.thread.isRunning():
-            c = '{0:f},{1:d},{2:x},{3:x},'.format(message.timestamp, self.count, message.arbitration_id, message.dlc)
+            c = '{0:f},{1:d},{2:f},{3:x},'.format(message.timestamp, self.count, message.arbitration_id, message.dlc)
             data=''
             viscosity=0
             density=0
             dielectric_constant=0
             oil_temp=0
+            Rp = 0
             status_code=0
             if message.dlc == 8:
-                if message.arbitration_id == 486344767:
+                if message.arbitration_id == float.fromhex('1CFD083F'):
                     viscosity = int('{0:x}{1:x}'.format(message.data[1],message.data[0]), 16)/63.9994
                     density = int('{0:x}{1:x}'.format(message.data[3],message.data[2]), 16)/32762.6478988
                     dielectric_constant = int('{0:x}{1:x}'.format(message.data[5],message.data[4]), 16)/8191.9153277
-                elif message.arbitration_id == 419360319:
+                elif message.arbitration_id == float.fromhex('18FEEE3F'):
                     oil_temp = (int('{0:x}{1:x}'.format(message.data[3],message.data[2]), 16)/32.0)-273.0
-                elif message.arbitration_id == 419377471:
+                elif message.arbitration_id == float.fromhex('18FF313F'):
                     status_code = int('{0:x}'.format(message.data[0]), 16)
+                elif message.arbitration_id == float.fromhex('18FFFF3F'):
+                    Rp = (int('{0:x}{1:x}{2:x}{3:x}'.format(message.data[3], message.data[2], message.data[1], message.data[0]), 16)*1000.0) + 100000              
                 else:
-                    if message.arbitration_id != 419430207:
-                        self.log_message.emit("incorrect arbitration id transmitted")
+                    self.log_message.emit("incorrect arbitration id transmitted")
             else:
                 self.log_message.emit("Incorrect number of channels received")
                 for i in range(message.dlc ):
                     data +=  '{0:x}'.format(message.data[i])
 
-            data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code))
+            data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d,%0d" % (viscosity, density, dielectric_constant, oil_temp, Rp, status_code))
             if status_code != 0:
                 self.log_message.emit("sensor reports error code %d" % (status_code))
 
@@ -222,7 +224,7 @@ class recordThread(QtCore.QObject):
 
             self.count += 1
             try:
-                if status_code != 0 or message.arbitration_id == 486344767 or message.arbitration_id == 419360319:
+                if status_code != 0 or message.arbitration_id == 486344767 or message.arbitration_id == 419360319 or message.arbitration_id == 419430207:
                     print(outstr,file = self.outfile) # Save data to file
                     self.log_message.emit(outstr)
             except:
@@ -243,23 +245,23 @@ class recordThread(QtCore.QObject):
         line_count = 0
         for row in file:
             if line_count == 0:
-                data.append(["Time (min)"]+row[4:9])
+                data.append(["Time (min)"]+row[4:10])
             if line_count == 1:
                 start_time = float(row[0])
                 time = float(row[0]) - start_time
                 time_data.append(time)
-                sensor_data = list(map(float, row[4:9]))
+                sensor_data = list(map(float, row[4:10]))
                 formatted_data = sensor_data
             if line_count > 1:
                 time = float(row[0])-start_time
                 time_data.append(time)
-                sensor_data = list(map(float, row[4:9]))
+                sensor_data = list(map(float, row[4:11]))
                 time_delta = time - time_data[line_count - 2]
                 if time_delta < 1:
                     for index, item in enumerate(formatted_data):
                         formatted_data[index] += sensor_data[index]
                 else:
-                    data.append([time_data[line_count-2]/60] + formatted_data[0:5])
+                    data.append([time_data[line_count-2]/60] + formatted_data[0:6])
                     formatted_data = sensor_data
             line_count += 1
             
