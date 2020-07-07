@@ -81,7 +81,7 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.recordButton.setEnabled(0)
         self.abortButton.setEnabled(1)
         self.updateLog("Recording Started...")
-        self.updateLog("timestamp, count, id, dlc, Viscosity (cp), Density (gm/cc), Dielectric constant (-), Temperature (C), Status")
+        self.updateLog("timestamp, count, id, dlc, Viscosity (cp), Density (gm/cc), Dielectric constant (-), Temperature (C), Status, Rp (ohms)")
 
         self.thread = QtCore.QThread()
         self.record_thread = recordThread(file_name = record_file_name, AICheckBox = AIChecked)
