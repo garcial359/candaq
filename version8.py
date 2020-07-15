@@ -20,6 +20,7 @@ import os
 import time
 import psutil
 import csv
+import datetime
 
 
 class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
@@ -282,7 +283,7 @@ class recordThread(QtCore.QObject):
         line_count = 0
         for row in file:
             if line_count == 0:
-                data.append(["Time (min)"]+row[4:11])
+                data.append(["Time (min)"]+row[4:11]+["Timestamp"])
             if line_count == 1:
                 start_time = float(row[0])
                 time = float(row[0]) - start_time
@@ -295,16 +296,17 @@ class recordThread(QtCore.QObject):
                 sensor_data = list(map(float, row[4:10]))
                 time_delta = time - time_data[line_count - 2]
                 channel_number = row[10]
+                central_time = datetime.datetime.fromtimestamp(float(row[0])).strftime('%Y-%m-%d %H:%M:%S')
                 if time_delta < 1:
                     for index, item in enumerate(formatted_data):
                         formatted_data[index] += sensor_data[index]
                         channel_number = row[10]
                 else:
-                    data.append([time_data[line_count-2]/60] + formatted_data[0:6] + [channel_number])
+                    data.append([time_data[line_count-2]/60] + formatted_data[0:6] + [channel_number] + [central_time])
                     formatted_data = sensor_data
             line_count += 1
             
-        data.append([time/60] + formatted_data + [channel_number])
+        data.append([time/60] + formatted_data + [channel_number] + [central_time])
         
         print("creating " + self.file_name.strip(".txt") + ".csv")
         with open(self.file_name.strip(".txt") + ".csv", 'w', newline='') as csvfile:

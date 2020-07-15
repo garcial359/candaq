@@ -20,6 +20,7 @@ import piplates.TINKERplate as TINK
 import time
 import psutil
 import csv
+import datetime
 
 
 class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
@@ -168,7 +169,7 @@ class recordThread(QtCore.QObject):
         self.outfile = open(file_name,'w')
         self.AIEnabled = AICheckBox
         if AICheckBox == 1:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms), AI1,AI2,AI3,AI4",file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),AI1,AI2,AI3,AI4",file = self.outfile)
         else:
             print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms)",file = self.outfile)
 
@@ -245,27 +246,29 @@ class recordThread(QtCore.QObject):
         line_count = 0
         for row in file:
             if line_count == 0:
-                data.append(["Time (min)"]+row[4:10])
+                data.append(["Time (min)"]+row[4:10]+["Timestamp"])
             if line_count == 1:
                 start_time = float(row[0])
                 time = float(row[0]) - start_time
                 time_data.append(time)
                 sensor_data = list(map(float, row[4:10]))
                 formatted_data = sensor_data
+                
             if line_count > 1:
                 time = float(row[0])-start_time
                 time_data.append(time)
                 sensor_data = list(map(float, row[4:11]))
                 time_delta = time - time_data[line_count - 2]
+                central_time = datetime.datetime.fromtimestamp(float(row[0])).strftime('%Y-%m-%d %H:%M:%S')
                 if time_delta < 1:
                     for index, item in enumerate(formatted_data):
                         formatted_data[index] += sensor_data[index]
                 else:
-                    data.append([time_data[line_count-2]/60] + formatted_data[0:6])
+                    data.append([time_data[line_count-2]/60] + formatted_data[0:6] + [central_time])
                     formatted_data = sensor_data
             line_count += 1
             
-        data.append([time/60] + formatted_data)
+        data.append([time/60] + formatted_data + [central_time])
         
         print("creating " + self.file_name.strip(".txt") + ".csv")
         with open(self.file_name.strip(".txt") + ".csv", 'w', newline='') as csvfile:

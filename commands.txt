@@ -16,6 +16,7 @@ sudo ln -fs /opt/vc/lib/libEGL.so /usr/lib/arm-linux-gnueabihf/libEGL.so.1.0.0
 python3 /home/pi/Desktop/python/version6.py
 Segmentation fault
 
+Git clone https://github.com/garcial359/candaq
 git config --global user.name "garcial359"
 git config --global user.email "garcial359@gmail.com"
 git clone https://github.com/garcial359/candaq.git
