@@ -142,7 +142,7 @@ class rxThread(QtCore.QObject):
             try:
                 recv_message = bus.recv(35)
                 if recv_message != None:
-                    self.message.emit(recv_message, "bus0")
+                    self.message.emit(recv_message, "069")
                 else:
                     self.rx_log_message.emit("Recieved no messages from bus0")
             except can.CanError:
@@ -168,7 +168,7 @@ class rxThread2(QtCore.QObject):
             try:
                 recv_message = bus.recv(35)
                 if recv_message != None:
-                    self.message.emit(recv_message, "bus1")
+                    self.message.emit(recv_message, "434")
                 else:
                     self.rx_log_message.emit("Recieved no messages from bus1")
             except can.CanError:
@@ -206,9 +206,9 @@ class recordThread(QtCore.QObject):
         self.AIEnabled = AICheckBox
         self.AIEnabled = AICheckBox
         if AICheckBox == 1:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),Channel,AI1,AI2,AI3,AI4",file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),Sensor,AI1,AI2,AI3,AI4",file = self.outfile)
         else:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),Channel", file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),Sensor", file = self.outfile)
 
     def run(self):
         if not self.thread.isRunning():
