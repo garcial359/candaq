@@ -169,6 +169,13 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLineEdit" name="ai_lineEdit">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item row="8" column="0">
@@ -250,7 +257,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="text">
-           <string>123456789</string>
+           <string/>
           </property>
           <property name="frame">
            <bool>true</bool>

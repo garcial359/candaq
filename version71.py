@@ -140,6 +140,9 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if float(values_list[5]) != 0:
             self.rp_lineEdit.setText(values_list[5])
             self.rp_lineEdit.setCursorPosition(0)
+        if float(values_list[6]) != 0:
+            self.ai_lineEdit.setText(values_list[6])
+            self.ai_lineEdit.setCursorPosition(0)          
             
 
 class rxThread(QtCore.QObject):
@@ -190,7 +193,7 @@ class recordThread(QtCore.QObject):
         self.outfile = open(file_name,'w')
         self.AIEnabled = AICheckBox
         if AICheckBox == 1:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),AI1,AI2,AI3,AI4",file = self.outfile)
+            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),RH (%)",file = self.outfile)
         else:
             print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms)",file = self.outfile)
 
@@ -227,24 +230,30 @@ class recordThread(QtCore.QObject):
                 self.log_message.emit("Incorrect number of channels received")
                 for i in range(message.dlc ):
                     data +=  '{0:x}'.format(message.data[i])
-
-            data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code, Rp))
-            if status_code != 0:
-                self.log_message.emit("sensor reports error code %d" % (status_code))
-
-            outstr = c+data
-
+            
             if (self.AIEnabled == 1):
                 volts = TINK.getADC(0,1)
+                rh_percent = (volts - 2.0 ) / 0.08
+                """
+                volts = TINK.getADC(0,2)
                 outstr = outstr+', '+ str(volts)
-                volts = TINK.getADC(0,1)
+                volts = TINK.getADC(0,3)
                 outstr = outstr+', '+ str(volts)
-                volts = TINK.getADC(0,1)
+                volts = TINK.getADC(0,4)
                 outstr = outstr+', '+ str(volts)
-                volts = TINK.getADC(0,1)
-                outstr = outstr+', '+ str(volts)
-
+                """
+            
+            if (self.AIEnabled == 1):
+                data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d,%0d,%6.3f" % (viscosity, density, dielectric_constant, oil_temp, status_code, Rp, rh_percent))
+            else:
+                data += ("%11.6f,%10.8f,%10.8f,%10.5f,%0d,%0d" % (viscosity, density, dielectric_constant, oil_temp, status_code, Rp))
+            
+            if status_code != 0:
+                self.log_message.emit("sensor reports error code %d" % (status_code))
+                
+            outstr = c+data
             self.count += 1
+            
             try:
                 if status_code != 0 or message.arbitration_id == 486344767 or message.arbitration_id == 419360319 or message.arbitration_id == 419430207:
                     print(outstr,file = self.outfile) # Save data to file
@@ -261,6 +270,7 @@ class recordThread(QtCore.QObject):
     def format_file(self):
         time_data = []
         sensor_data = []
+        RH_data = []
         formatted_data = []
         data = []
         f = open(self.file_name, 'r')
@@ -268,29 +278,45 @@ class recordThread(QtCore.QObject):
         line_count = 0
         for row in file:
             if line_count == 0:
-                data.append(["Time (min)"]+row[4:10]+["Timestamp"])
+                if (self.AIEnabled == 1):
+                    data.append(["Time (min)"]+row[4:11]+["Timestamp"])
+                else:
+                    data.append(["Time (min)"]+row[4:10]+["Timestamp"])
             if line_count == 1:
                 start_time = float(row[0])
                 time = float(row[0]) - start_time
                 time_data.append(time)
+                if (self.AIEnabled == 1):
+                    RH_data = list(map(float, row[10:11]))
                 sensor_data = list(map(float, row[4:10]))
                 formatted_data = sensor_data
                 
             if line_count > 1:
                 time = float(row[0])-start_time
                 time_data.append(time)
+                if (self.AIEnabled == 1):
+                    RH_data = list(map(float, row[10:11]))
                 sensor_data = list(map(float, row[4:11]))
+                    
                 time_delta = time - time_data[line_count - 2]
                 central_time = datetime.datetime.fromtimestamp(float(row[0])).strftime('%Y-%m-%d %H:%M:%S')
                 if time_delta < 1:
                     for index, item in enumerate(formatted_data):
                         formatted_data[index] += sensor_data[index]
+
                 else:
-                    data.append([time_data[line_count-2]/60] + formatted_data[0:6] + [central_time])
+                    if (self.AIEnabled == 1):
+                        data.append([time_data[line_count-2]/60] + formatted_data[0:6] + [RH_data[0]] + [central_time])
+                    else:
+                        data.append([time_data[line_count-2]/60] + formatted_data[0:6] + [central_time])
+                        
                     formatted_data = sensor_data
             line_count += 1
-            
-        data.append([time/60] + formatted_data + [central_time])
+        
+        if (self.AIEnabled == 1):
+            data.append([time/60] + formatted_data[0:6] + [RH_data[0]] + [central_time])
+        else:
+            data.append([time/60] + formatted_data + [central_time])
         
         print("creating " + self.file_name.strip(".txt") + ".csv")
         with open(self.file_name.strip(".txt") + ".csv", 'w', newline='') as csvfile:
