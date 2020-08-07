@@ -140,9 +140,10 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if float(values_list[5]) != 0:
             self.rp_lineEdit.setText(values_list[5])
             self.rp_lineEdit.setCursorPosition(0)
-        if float(values_list[6]) != 0:
-            self.ai_lineEdit.setText(values_list[6])
-            self.ai_lineEdit.setCursorPosition(0)          
+        if self.AICheckBox.isChecked():    
+            if float(values_list[6]) != 0:
+                self.ai_lineEdit.setText(values_list[6])
+                self.ai_lineEdit.setCursorPosition(0)          
             
 
 class rxThread(QtCore.QObject):
