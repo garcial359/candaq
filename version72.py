@@ -220,16 +220,22 @@ class recordThread(QtCore.QObject):
             Rp = 0
             status_code=0
             if message.dlc == 8:
+                data_0 = '{0:x}'.format(message.data[0]).zfill(2)
+                data_1 = '{0:x}'.format(message.data[1]).zfill(2)
+                data_2 = '{0:x}'.format(message.data[2]).zfill(2)
+                data_3 = '{0:x}'.format(message.data[3]).zfill(2)
+                data_4 = '{0:x}'.format(message.data[4]).zfill(2)
+                data_5 = '{0:x}'.format(message.data[5]).zfill(2)
                 if message.arbitration_id == float.fromhex('1CFD083F'):
-                    viscosity = int('{0:x}{1:x}'.format(message.data[1],message.data[0]), 16)/63.9994
-                    density = int('{0:x}{1:x}'.format(message.data[3],message.data[2]), 16)/32762.6478988
-                    dielectric_constant = int('{0:x}{1:x}'.format(message.data[5],message.data[4]), 16)/8191.9153277
+                    viscosity = int(data_1 + data_0, 16)*0.015625
+                    density = int(data_3 + data_2, 16)*0.00003052
+                    dielectric_constant = int(data_5 + data_4, 16)*0.00012207
                 elif message.arbitration_id == float.fromhex('18FEEE3F'):
-                    oil_temp = (int('{0:x}{1:x}'.format(message.data[3],message.data[2]), 16)/32.0)-273.0
+                    oil_temp = (int(data_3 + data_2, 16)*0.03125)-273.0
                 elif message.arbitration_id == float.fromhex('18FF313F'):
                     status_code = int('{0:x}'.format(message.data[0]), 16)
                 elif message.arbitration_id == float.fromhex('18FFFF3F'):
-                    Rp = (int('{0:x}{1:x}{2:x}{3:x}'.format(message.data[3], message.data[2], message.data[1], message.data[0]), 16)*1000.0) + 100000              
+                    Rp = (int(data_3 + data_2 + data_1 + data_0, 16)*1000.0) + 100000              
                 else:
                     self.log_message.emit("incorrect arbitration id transmitted")
             else:
