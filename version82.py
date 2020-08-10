@@ -127,9 +127,10 @@ class rxThread(QtCore.QObject):
     message = QtCore.pyqtSignal(can.Message, str)
     rx_log_message = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent = None):
+    def __init__(self, file_name, parent = None):
         super(rxThread, self).__init__(parent)
-
+        self.file_name = file_name.strip(".txt") + "_raw.txt"
+        
     def run(self):
         os.system("sudo /sbin/ip link set can0 up type can bitrate 250000")
         time.sleep(0.1)
@@ -142,6 +143,10 @@ class rxThread(QtCore.QObject):
             try:
                 recv_message = bus.recv(35)
                 if recv_message != None:
+                    with open(self.file_name, 'a') as f:
+                        data = ','.join('%02X' % byte for byte in recv_message.data)
+                        central_time = datetime.datetime.fromtimestamp(float(recv_message.timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+                        f.write("{},{},{},Sensor 069,{}\n".format(recv_message.timestamp, central_time, recv_message.arbitration_id, data))
                     self.message.emit(recv_message, "069")
                 else:
                     self.rx_log_message.emit("Recieved no messages from bus0")
@@ -153,9 +158,10 @@ class rxThread2(QtCore.QObject):
     message = QtCore.pyqtSignal(can.Message, str)
     rx_log_message = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent = None):
+    def __init__(self, file_name, parent = None):
         super(rxThread2, self).__init__(parent)
-
+        self.file_name = file_name.strip(".txt") + "_raw.txt"
+        
     def run(self):
         os.system("sudo /sbin/ip link set can1 up type can bitrate 250000")
         time.sleep(0.1)
@@ -168,6 +174,10 @@ class rxThread2(QtCore.QObject):
             try:
                 recv_message = bus.recv(35)
                 if recv_message != None:
+                    with open(self.file_name, 'a') as f:
+                        data = ','.join('%02X' % byte for byte in recv_message.data)
+                        central_time = datetime.datetime.fromtimestamp(float(recv_message.timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+                        f.write("{},{},{},Sensor 434,{}\n".format(recv_message.timestamp, central_time, recv_message.arbitration_id, data))
                     self.message.emit(recv_message, "434")
                 else:
                     self.rx_log_message.emit("Recieved no messages from bus1")
@@ -188,14 +198,14 @@ class recordThread(QtCore.QObject):
         os.system("sudo /sbin/ip link set can0 down")
         os.system("sudo /sbin/ip link set can1 down")
         self.thread = QtCore.QThread()
-        self.rx_thread = rxThread()
+        self.rx_thread = rxThread(file_name = file_name)
         self.rx_thread.moveToThread(self.thread)
         self.rx_thread.message.connect(self.message_record)
         self.rx_thread.rx_log_message.connect(self.logMessage)
         self.thread.started.connect(self.rx_thread.run)
         
         self.thread2 = QtCore.QThread()
-        self.rx_thread2 = rxThread2()
+        self.rx_thread2 = rxThread2(file_name = file_name)
         self.rx_thread2.moveToThread(self.thread2)
         self.rx_thread2.message.connect(self.message_record)
         self.rx_thread2.rx_log_message.connect(self.logMessage)
