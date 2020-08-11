@@ -302,7 +302,7 @@ class recordThread(QtCore.QObject):
                 time_delta = time - time_data[line_count - 2]
                 channel_number = row[10]
                 central_time = datetime.datetime.fromtimestamp(float(row[0])).strftime('%Y-%m-%d %H:%M:%S')
-                if time_delta < 1:
+                if time_delta < 0.1:
                     for index, item in enumerate(formatted_data):
                         formatted_data[index] += sensor_data[index]
                         channel_number = row[10]
