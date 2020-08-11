@@ -44,13 +44,11 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def displayKeyboard(self):
         if self.checkIfProcessRunning('matchbox-keyboard'):
-            #os.system("/usr/bin/toggle-keyboard.sh")
             subprocess.Popen(["killall","matchbox-keyboard"])
             self.showFullScreen()
         else:
             try:
                 self.showMaximized()
-                #os.system("/usr/bin/toggle-keyboard.sh")
                 subprocess.Popen(["matchbox-keyboard"])
             except FileNotFoundError:
                 print("keyboard Error")
@@ -77,8 +75,6 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.updateLog("Invalid file name or extension.\nTry harder...")
             return
 
-        AIChecked = self.AICheckBox.isChecked()
-
         self.progressBar.setValue(0)
         self.recordButton.setEnabled(0)
         self.abortButton.setEnabled(1)
@@ -86,7 +82,7 @@ class MainUiClass(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.updateLog("timestamp, count, id, dlc, Viscosity (cp), Density (gm/cc), Dielectric constant (-), Temperature (C), Status, Rb (ohms)")
 
         self.thread = QtCore.QThread()
-        self.record_thread = recordThread(file_name = record_file_name, AICheckBox = AIChecked)
+        self.record_thread = recordThread(file_name = record_file_name)
         self.record_thread.moveToThread(self.thread)
         self.thread.started.connect(self.record_thread.run)
         self.thread.finished.connect(self.record_thread.stop)
@@ -189,11 +185,10 @@ class recordThread(QtCore.QObject):
     log_message = QtCore.pyqtSignal(str)
     outfile = 0
     count = 0
-    AIEnabled = 0
     file_name = 0
 
 
-    def __init__(self, file_name, AICheckBox, parent = None):
+    def __init__(self, file_name, parent = None):
         super(recordThread, self).__init__(parent)
         os.system("sudo /sbin/ip link set can0 down")
         os.system("sudo /sbin/ip link set can1 down")
@@ -213,12 +208,7 @@ class recordThread(QtCore.QObject):
               
         self.file_name = file_name
         self.outfile = open(file_name,'w')
-        self.AIEnabled = AICheckBox
-        self.AIEnabled = AICheckBox
-        if AICheckBox == 1:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),Sensor,AI1,AI2,AI3,AI4",file = self.outfile)
-        else:
-            print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),Sensor", file = self.outfile)
+        print("timestamp,count,id,dlc,Viscosity (cp),Density (gm/cc),Dielectric constant (-),Temperature (C),Status,Rp (ohms),Sensor", file = self.outfile)
 
     def run(self):
         if not self.thread.isRunning():
