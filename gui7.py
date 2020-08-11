@@ -145,7 +145,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label.setText(_translate("MainWindow", "File Name"))
-        self.fileName.setText(_translate("MainWindow", "example.txt"))
+        self.fileName.setText(_translate("MainWindow", "/home/pi/Desktop/Data/example.txt"))
         self.label_2.setText(_translate("MainWindow", "Recording Time [min]"))
         self.recordingTimeLineEdit.setText(_translate("MainWindow", "2"))
         self.abortButton.setText(_translate("MainWindow", "Abort"))
