@@ -244,7 +244,24 @@ class recordThread(QtCore.QObject):
                     data +=  '{0:x}'.format(message.data[i])
             
             if (self.AIEnabled == 1):
-                volts = TINK.getADC(0,1)
+                
+                try:
+                    volts = TINK.getADC(0,1)
+                except:
+                    volts = 0.0
+                    self.log_message.emit("retry daq data")
+                i = 0
+                while volts == 0.0:
+                    try:
+                        volts = TINK.getADC(0,1)
+                        self.log_message.emit("retry daq data")
+                    except:
+                        volts = 0.0
+                    i += 1
+                    if i == 10:
+                        self.log_message.emit("couldn't grab daq data")
+                        break
+                    
                 rh_percent = (volts - 2.0 ) / 0.08
                 """
                 volts = TINK.getADC(0,2)
