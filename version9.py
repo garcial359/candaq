@@ -1,10 +1,12 @@
 #! /usr/bin/env python3
 
 # -*- coding: utf-8 -*-
-# This DAQ program is version 7 and runs with associated gui7.py files in same folder
+# This DAQ program is version 9 and runs with associated gui9.py files in same folder
 # Records chanel 0 on tinker board
 # Needs options selection added for tinker board channels
 # Form implementation generated from reading ui file 'daq_gui.ui'
+
+
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets

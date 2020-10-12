@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Donaldson DAQ
+Icon=/home/pi/Desktop/candaq/daq-icon.png
+Exec=/home/pi/Desktop/candaq/version91.py
+Terminal=false
+Path=/home/pi/Desktop/candaq
+Name[en_US]=Poseidon DAQ
