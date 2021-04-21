@@ -5,7 +5,7 @@
 # Records chanel 0 on tinker board
 # Needs options selection added for tinker board channels
 # Form implementation generated from reading ui file 'daq_gui.ui'
-# TE sensor program before temp group change
+# temp group changed for TE sensor
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -227,14 +227,17 @@ class recordThread(QtCore.QObject):
                 data_3 = '{0:x}'.format(message.data[3]).zfill(2)
                 data_4 = '{0:x}'.format(message.data[4]).zfill(2)
                 data_5 = '{0:x}'.format(message.data[5]).zfill(2)
+                data_6 = '{0:x}'.format(message.data[6]).zfill(2)
+                data_7 = '{0:x}'.format(message.data[7]).zfill(2)
                 if message.arbitration_id == float.fromhex('1CFD083F'):
                     viscosity = int(data_1 + data_0, 16)*0.015625
                     density = int(data_3 + data_2, 16)*0.00003052
                     dielectric_constant = int(data_5 + data_4, 16)*0.00012207
+                    oil_temp = (int(data_7 + data_6, 16)*0.03125)-273.0
                 elif message.arbitration_id == float.fromhex('18FEEE3F'):
                     oil_temp = (int(data_3 + data_2, 16)*0.03125)-273.0
                 elif message.arbitration_id == float.fromhex('18FF313F'):
-                    status_code = int('{0:x}'.format(message.data[0]), 16)
+                    status_code = int(data_1 + data_0, 16)
                 elif message.arbitration_id == float.fromhex('18FFFF3F'):
                     Rp = (int(data_3 + data_2 + data_1 + data_0, 16)*1000.0) + 100000
                 elif message.arbitration_id == float.fromhex('1CFFFF3F'):
@@ -287,7 +290,7 @@ class recordThread(QtCore.QObject):
             self.count += 1
             
             try:
-                if status_code != 0 or message.arbitration_id == 486344767 or message.arbitration_id == 419360319 or message.arbitration_id == 419430207:
+                if status_code != 0 or message.arbitration_id == 486344767 or message.arbitration_id == 419360319 or message.arbitration_id == 419430207 or message.arbitration_id == 486539071:
                     print(outstr,file = self.outfile) # Save data to file
                     self.log_message.emit(outstr)
                     self.log_values.emit(data)

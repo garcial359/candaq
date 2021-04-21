@@ -242,7 +242,9 @@ class recordThread(QtCore.QObject):
                 elif message.arbitration_id == float.fromhex('18FF313F'):
                     status_code = int('{0:x}'.format(message.data[0]), 16)
                 elif message.arbitration_id == float.fromhex('18FFFF3F'):
-                    Rp = (int(data_3 + data_2 + data_1 + data_0, 16)*1000.0) + 100000              
+                    Rp = (int(data_3 + data_2 + data_1 + data_0, 16)*1000.0) + 100000
+                elif message.arbitration_id == float.fromhex('1CFFFF3F'):
+                    Rp = (int(data_3 + data_2 + data_1 + data_0, 16)*1000.0) + 100000
                 else:
                     self.log_message.emit("incorrect arbitration id transmitted")
             else:
